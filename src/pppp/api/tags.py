@@ -2,7 +2,6 @@ from __future__ import annotations
 
 # built-in
 import time
-from typing import Any
 
 # external
 from fastapi import APIRouter, Body, HTTPException
@@ -20,7 +19,7 @@ router = APIRouter(tags=["tags"])
 async def tags_bytes_endpoint(
     image: bytes = Body(..., description="Raw image bytes"),
     top_k: int = 50,
-) -> dict[str, Any]:
+) -> TagsResponse:
     if not image:
         raise HTTPException(status_code=400, detail="empty body")
     if len(image) > settings.max_image_bytes:
@@ -32,15 +31,15 @@ async def tags_bytes_endpoint(
     result = tag_bytes(image, content_type=ct, top_k=top_k)
     elapsed_ms_total = int((time.perf_counter() - start) * 1000)
 
-    return {
-        "tags": result.tags,
-        "engine": result.engine,
-        "timings_ms": {"tagging": result.elapsed_ms, "total": elapsed_ms_total},
-    }
+    return TagsResponse(
+        tags=result.tags,
+        engine=result.engine,
+        timings_ms={"tagging": result.elapsed_ms, "total": elapsed_ms_total},
+    )
 
 
 @router.post("/tags/url", response_model=TagsResponse)
-async def tags_url_endpoint(payload: OcrUrlRequest, top_k: int = 50) -> dict[str, Any]:
+async def tags_url_endpoint(payload: OcrUrlRequest, top_k: int = 50) -> TagsResponse:
     image_bytes = await fetch_image(payload.image_url)
     if not image_bytes:
         raise HTTPException(status_code=400, detail="empty image_url")
@@ -51,15 +50,15 @@ async def tags_url_endpoint(payload: OcrUrlRequest, top_k: int = 50) -> dict[str
     result = tag_bytes(image_bytes, content_type=ct, top_k=top_k)
     elapsed_ms_total = int((time.perf_counter() - start) * 1000)
 
-    return {
-        "tags": result.tags,
-        "engine": result.engine,
-        "timings_ms": {"tagging": result.elapsed_ms, "total": elapsed_ms_total},
-    }
+    return TagsResponse(
+        tags=result.tags,
+        engine=result.engine,
+        timings_ms={"tagging": result.elapsed_ms, "total": elapsed_ms_total},
+    )
 
 
 @router.post("/tags/b64", response_model=TagsResponse)
-async def tags_b64_endpoint(payload: OcrB64Request, top_k: int = 50) -> dict[str, Any]:
+async def tags_b64_endpoint(payload: OcrB64Request, top_k: int = 50) -> TagsResponse:
     image_bytes = decode_image_b64(payload.image_b64)
 
     if not image_bytes:
@@ -73,8 +72,8 @@ async def tags_b64_endpoint(payload: OcrB64Request, top_k: int = 50) -> dict[str
     result = tag_bytes(image_bytes, content_type=ct, top_k=top_k)
     elapsed_ms_total = int((time.perf_counter() - start) * 1000)
 
-    return {
-        "tags": result.tags,
-        "engine": result.engine,
-        "timings_ms": {"tagging": result.elapsed_ms, "total": elapsed_ms_total},
-    }
+    return TagsResponse(
+        tags=result.tags,
+        engine=result.engine,
+        timings_ms={"tagging": result.elapsed_ms, "total": elapsed_ms_total},
+    )
