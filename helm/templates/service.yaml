@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pppp.fullname" . }}
+  labels:
+    {{- include "pppp.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "pppp.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: http
+    protocol: TCP
+    port: {{ .Values.gateway.servicePort | default 80 }}
+    targetPort: {{ .Values.containerPort | default 8080 }}

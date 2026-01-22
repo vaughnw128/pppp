@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pppp.fullname" . }}
+  labels:
+    {{- include "pppp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      {{- include "pppp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "pppp.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "pppp.serviceAccountName" . }}
+      automountServiceAccountToken: true
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ include "pppp.fullname" . }}
+        ports:
+          - containerPort: {{ .Values.containerPort | default 8080 }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        image: "{{ .Values.image }}:{{ .Chart.Version }}"
+        imagePullPolicy: {{ $.Values.imagePullPolicy | default "Always" }}
+        {{- if or (.Values.secretVars) (.Values.envVars) }}
+        env:
+          {{- range $var, $value := .Values.envVars }}
+          - name: {{ $var }}
+            value: {{ quote $value }}
+          {{- end }}
+          {{- range $secret, $_ := .Values.secretVars }}
+          - name: {{ $secret }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ $.Chart.Name }}-secrets
+                key: {{ $secret }}
+          {{- end }}
+        {{- end }}

@@ -1,0 +1,33 @@
+image: "ghcr.io/vaughnw128/pppp"
+
+replicas: 1
+
+serviceAccount:
+  create: false
+  name: ""
+
+
+envVars:
+  PPPP_WARMUP_ON_START: "true"
+  PPPP_PADDLE_LANG: "en"
+  PPPP_PADDLE_MIN_LINE_CONFIDENCE: "0.6"
+
+containerPort: 8080
+gateway:
+  enabled: true
+  name: pppp
+  namespace: applications
+  hostname: pppp.internal.vw-ops.net
+  servicePort: 80
+  redirect:
+    enabled: true
+    sectionName: http
+    statusCode: 301
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "100m"
+  limits:
+    memory: "4096Mi"
+    cpu: "1000m"

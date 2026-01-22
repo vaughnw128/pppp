@@ -1,0 +1,6 @@
+apiVersion: v2
+name: pppp
+description: Penultimate Picture Post-Processor
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
